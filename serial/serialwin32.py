@@ -12,6 +12,7 @@
 # pylint: disable=invalid-name,too-few-public-methods
 import ctypes
 import time
+import platform
 from serial import win32
 
 import serial
@@ -240,10 +241,28 @@ class Serial(SerialBase):
             win32.CloseHandle(self._port_handle)
             self._port_handle = None
 
+    def _close_xp(self):
+        """ works on xp an older """
+        if self._port_handle is not None:
+            # Restore original timeout values:
+            win32.SetCommTimeouts(self._port, self._orgTimeouts)
+            # Close COM-Port:
+            if self._overlapped_read is not None:
+                win32.CloseHandle(self._overlapped_read.hEvent)
+                self._overlapped_read = None
+            if self._overlapped_write is not None:
+                win32.CloseHandle(self._overlapped_write.hEvent)
+                self._overlapped_write = None
+            win32.CloseHandle(self._port_handle)
+            self._port_handle = None
+
     def close(self):
         """Close port"""
         if self.is_open:
-            self._close()
+            if platform.win32_ver() in ['XP','2003Server']:
+                self._close_xp()
+            else:
+                self._close()
             self.is_open = False
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
