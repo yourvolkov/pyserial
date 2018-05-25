@@ -259,7 +259,7 @@ class Serial(SerialBase):
     def close(self):
         """Close port"""
         if self.is_open:
-            if platform.win32_ver() in ['XP','2003Server']:
+            if platform.win32_ver()[0] in ['XP','2003Server']:
                 self._close_xp()
             else:
                 self._close()
